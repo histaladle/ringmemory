@@ -12,16 +12,16 @@ RingMemory::RingMemory(int buffer_size)
     ,_readableCount(0),_status(0)
     ,mutex(PTHREAD_MUTEX_INITIALIZER)
 {
-    buffer=new uint8_t[buffer_size];
+    buffer=new uint8_t[size_t(buffer_size)];
 }
 
 RingMemory::~RingMemory()
 {
     delete [] buffer;
-    buffer=NULL;
+    buffer=nullptr;
 }
 
-int RingMemory::pop(uint8_t *dst, int max_count)
+int RingMemory::read(uint8_t *dst, int max_count)
 {
     int res=0;
     if(max_count<=0) {
@@ -50,7 +50,7 @@ int RingMemory::pop(uint8_t *dst, int max_count)
     return res;
 }
 
-int RingMemory::pop(int max_count)
+int RingMemory::dump(int max_count)
 {
     int res=0;
     if(max_count<=0) {
@@ -78,7 +78,30 @@ int RingMemory::pop(int max_count)
     return res;
 }
 
-int RingMemory::push(uint8_t *src, int count)
+int RingMemory::remove(int offset, int max_count)
+{
+    int res=0;
+    if(max_count<=0) {
+        return res;
+    }
+    if(offset<0) {
+        return res;
+    }
+    if(offset>=_readableCount) {
+        return res;
+    }
+    PRESS();
+    res=_readableCount-offset;
+    res=std::min(res,max_count);
+    for(int i=0;i<res;++i) {
+        buffer[(rdIndex+offset+i)%BUFFER_SIZE]=buffer[(rdIndex+res+offset+i)%BUFFER_SIZE];
+    }
+    _readableCount-=res;
+    RELEASE();
+    return res;
+}
+
+int RingMemory::write(uint8_t *src, int count)
 {
     int res=0;
     if(count<=0) {

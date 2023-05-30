@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <cstddef>
 #include <algorithm>
-#include <string>
+#include <cstring>
+#include <pthread.h>
 class RingMemory
 {
 public:
@@ -12,15 +13,16 @@ public:
     ~RingMemory();
     uint8_t *buffer;
     const int BUFFER_SIZE;
-    int pop(int max_count);
-    int pop(uint8_t *dst, int max_count);
-    int push(uint8_t *src,int count);
+    int dump(int max_count);
+    int remove(int offset,int max_count);
+    int read(uint8_t *dst, int max_count);
+    int write(uint8_t *src,int count);
     int readableCount();
     int writableCount();
     int status();
     int copy(uint8_t *dst,int size,int offset);
     int reserve(int size);
-private:
+public:
     int rdIndex;
     int _readableCount;
     int _status;
